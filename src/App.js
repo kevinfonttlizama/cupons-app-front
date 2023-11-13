@@ -9,7 +9,7 @@ const App = () => {
   const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
-    // Supongamos que guardas el rol del usuario en localStorage o en alguna otra parte
+    // Assuming the user's role and token are stored in localStorage or somewhere else
     const role = localStorage.getItem('userRole');
     const token = localStorage.getItem('token');
     if (token && role) {
@@ -21,10 +21,9 @@ const App = () => {
   const handleLoginSuccess = (userData) => {
     setIsAuthenticated(true);
     setUserRole(userData.role);
-    localStorage.setItem('token', userData.token); // Asegúrate de que tu API envíe el token
-    localStorage.setItem('userRole', userData.role); // Guarda el rol del usuario
+    localStorage.setItem('token', userData.token); // Asegúrate de que el backend envía el token
+    localStorage.setItem('userRole', userData.role);
   };
-
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserRole('');
@@ -35,7 +34,7 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={!isAuthenticated ? <Login onLoginSuccess={handleLoginSuccess} /> : <Navigate to={`/${userRole}`} replace />} />
+        <Route path="/" element={!isAuthenticated ? <Login onLoginSuccess={handleLoginSuccess} /> : (userRole === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/customer" replace />)} />
         <Route path="/admin" element={isAuthenticated && userRole === 'admin' ? <AdminDashboard onLogout={handleLogout} /> : <Navigate to="/" replace />} />
         <Route path="/customer" element={isAuthenticated && userRole === 'customer' ? <CustomerDashboard onLogout={handleLogout} /> : <Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? `/${userRole}` : '/'} replace />} />

@@ -22,31 +22,25 @@ const Login = ({ onLoginSuccess }) => {
 
   // ...
 
-const handleLoginSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    // Aquí anidamos las credenciales bajo la clave 'user'
-    const response = await axios.post('http://localhost:3000/users/sign_in', {
-      user: credentials
-    });
-
-    // Asume que la respuesta del servidor incluye algo así como: { ...data, role: 'admin' }
-    const { role } = response.data;
-
-
-    onLoginSuccess(response.data);
-
-    if (role === 'admin') {
-
-    } else if (role === 'customer') {
-
-    } else {
-
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('http://localhost:3000/users/sign_in', {
+        user: credentials
+      });
+  
+      if (response.data && response.data.role) {
+        onLoginSuccess(response.data); 
+        console.log(response.data)
+      } else {
+  
+        console.error('Login failed: Role or token not provided in response');
+      }
+    } catch (error) {
+      console.error('Login failed:', error.response ? error.response.data : error.message);
     }
-  } catch (error) {
-    console.error('Login failed:', error.response ? error.response.data : error.message);
-  }
-};
+  };
+  
 
 
 
