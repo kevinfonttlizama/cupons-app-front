@@ -5,23 +5,22 @@ import CouponForm from './couponForm';
 import CouponsTable from './CouponsTable';
 import axios from 'axios';
 
-const AdminDashboard = () => {
+const AdminDashboard = ({onLogout}) => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [coupons, setCoupons] = useState([]);
   const [editingCoupon, setEditingCoupon] = useState(null);
 
   const handleLogout = () => {
-    // Implementa la lógica de cierre de sesión aquí
-    // Por ejemplo, eliminar el token de autenticación y redirigir al login
-    localStorage.removeItem('authToken');
-    navigate('/login');
+    localStorage.removeItem('authToken'); // Elimina el token de autenticación
+    onLogout()
+    navigate('/login'); // Redirige al usuario a la página de inicio de sesión
   };
 
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => {
     setShowModal(false);
-    setEditingCoupon(null);
+    setEditingCoupon(null); // Resetea el cupón en edición
   };
 
   const refreshCoupons = () => {
@@ -63,13 +62,13 @@ const AdminDashboard = () => {
           </Modal.Body>
         </Modal>
 
-          <CouponsTable
-        coupons={coupons}
-        onEditCoupon={handleEditCoupon}
-        refreshCoupons={refreshCoupons}
-        setShowModal={setShowModal}
-        setEditingCoupon={setEditingCoupon}
-      />
+        <CouponsTable
+          coupons={coupons}
+          onEditCoupon={handleEditCoupon}
+          refreshCoupons={refreshCoupons}
+          setShowModal={setShowModal}
+          setEditingCoupon={setEditingCoupon}
+        />
       </Container>
     </Container>
   );

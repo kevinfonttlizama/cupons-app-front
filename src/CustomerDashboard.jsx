@@ -1,61 +1,87 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { Container, Navbar, Button, Alert, Card } from 'react-bootstrap';
 import axios from 'axios';
 
-const CustomerDashboard = ({ onLogout }) => {
-  const [coupons, setCoupons] = useState([]);
-  const [error, setError] = useState('');
+const CustomerDashboard = ({ onLogout, authToken }) => {
+  const [couponCode, setCouponCode] = useState('');
+  const [couponDetails, setCouponDetails] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  useEffect(() => {
-    const fetchCoupons = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/coupons', {
-          // Asegúrate de incluir credenciales si es necesario, como un token de autenticación
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`, // Ejemplo de cómo enviar un token
-          },
-        });
-        setCoupons(response.data);
-      } catch (error) {
-        setError('Failed to load coupons');
-        console.error(error.response ? error.response.data : error.message);
-      }
-    };
-
-    fetchCoupons();
-  }, []);
-
-  // Function to handle coupon redemption...
-  const handleRedeem = async (couponId) => {
-    try {
-      // Redeem logic here...
-      const response = await axios.post(`http://localhost:3000/coupons/${couponId}/redeem`);
-      // Handle successful redemption...
-    } catch (error) {
-      // Handle errors...
+  const axiosConfig = {
+    headers: {
+      'Authorization': `Bearer ${authToken}` // Asegúrate de que authToken contenga el token correcto
     }
   };
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+
+  const handleCouponCodeChange = (e) => {
+    setCouponCode(e.target.value);
+    setCouponDetails(null);
+    setErrorMessage('');
+  };
+
+  const handleVerifyCoupon = () => {
+    axios.post(`http://localhost:3000/api/customer/coupons/verify`, { code: couponCode })
+      .then(response => {
+        console.log(response.data); // Agregar esto para depurar la respuesta
+        setCouponDetails(response.data);
+        setErrorMessage('');
+      })
+      .catch(error => {
+        setErrorMessage(error.response?.data?.error || 'Error verifying coupon.');
+        setCouponDetails(null);
+      });
+  };
+  
+  
+  const handleRedeemCoupon = () => {
+    axios.post(`http://localhost:3000/api/customer/coupons/${couponDetails.id}/redeem`)
+      .then(response => {
+        alert(response.data.message || 'Coupon redeemed successfully.');
+        setCouponCode('');
+        setCouponDetails(null);
+      })
+      .catch(error => {
+        alert(error.response?.data?.error || 'Error redeeming coupon.');
+      });
+  };
+  
 
   return (
-    <div>
-      <h2>Customer Dashboard</h2>
-      <button onClick={onLogout}>Logout</button>
-      {coupons.length ? (
-        <ul>
-          {coupons.map((coupon) => (
-            <li key={coupon.id}>
-              {coupon.code} - {coupon.isActive ? 'Active' : 'Inactive'}
-              <button onClick={() => handleRedeem(coupon.id)}>Redeem</button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div>No coupons available.</div>
-      )}
-    </div>
+    <Container fluid>
+      <Navbar bg="light" expand="lg">
+        <Navbar.Brand href="#home">Customer Dashboard</Navbar.Brand>
+        <Button onClick={onLogout}>Logout</Button>
+      </Navbar>
+      <Container>
+        <h1>Welcome, Customer!</h1>
+        <div>
+          <input type="text" value={couponCode} onChange={handleCouponCodeChange} placeholder="Enter Coupon Code" />
+          <Button onClick={handleVerifyCoupon}>Verify</Button>
+        </div>
+        {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
+        {couponDetails && (
+         <Card>
+         <Card.Body>
+           <Card.Title>Coupon Details</Card.Title>
+           <Card.Text>{couponDetails.description}</Card.Text>
+           <Card.Text>
+             Discount Type: {couponDetails.discount_type || 'N/A'}
+           </Card.Text>
+           <Card.Text>
+             Discount Value: {typeof couponDetails.discount_value !== 'undefined' ? 
+               (couponDetails.discount_type === 'percentage' ? 
+                 `${couponDetails.discount_value}%` : 
+                 `$${couponDetails.discount_value}`
+               ) : 
+               'N/A'}
+           </Card.Text>
+           <Button onClick={handleRedeemCoupon}>Redeem Coupon</Button>
+         </Card.Body>
+       </Card>
+        )}
+      </Container>
+    </Container>
   );
 };
 
