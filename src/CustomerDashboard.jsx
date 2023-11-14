@@ -9,9 +9,10 @@ const CustomerDashboard = ({ onLogout, authToken }) => {
 
   const axiosConfig = {
     headers: {
-      'Authorization': `Bearer ${authToken}` // Asegúrate de que authToken contenga el token correcto
+      'Authorization': `Bearer ${localStorage.getItem('authToken')}`
     }
   };
+  
 
 
   const handleCouponCodeChange = (e) => {
@@ -35,6 +36,11 @@ const CustomerDashboard = ({ onLogout, authToken }) => {
   
   
   const handleRedeemCoupon = () => {
+    if (!couponDetails || typeof couponDetails.id === 'undefined') {
+      alert('Invalid coupon details');
+      return;
+    }
+
     axios.post(`http://localhost:3000/api/customer/coupons/${couponDetails.id}/redeem`)
       .then(response => {
         alert(response.data.message || 'Coupon redeemed successfully.');
