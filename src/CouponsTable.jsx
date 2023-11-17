@@ -2,6 +2,8 @@ import React from 'react';
 import { Table, Button } from 'react-bootstrap';
 import axios from 'axios';
 
+
+
 const CouponsTable = ({ coupons, refreshCoupons, onEditCoupon, setShowModal, setEditingCoupon }) => {
   const handleEditCoupon = (coupon) => {
     setEditingCoupon(coupon);

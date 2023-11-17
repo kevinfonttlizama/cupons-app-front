@@ -2,17 +2,20 @@ import React, { useState } from 'react';
 import { Container, Navbar, Button, Alert, Card } from 'react-bootstrap';
 import axios from 'axios';
 
-const CustomerDashboard = ({ onLogout, authToken }) => {
+const CustomerDashboard = ({ onLogout }) => {
   const [couponCode, setCouponCode] = useState('');
   const [couponDetails, setCouponDetails] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const authToken = localStorage.getItem('authToken');
+
+
   const axiosConfig = {
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      'Authorization': `Bearer ${authToken}`
     }
   };
-  
+
 
 
   const handleCouponCodeChange = (e) => {
@@ -22,11 +25,12 @@ const CustomerDashboard = ({ onLogout, authToken }) => {
   };
 
   const handleVerifyCoupon = () => {
-    axios.post(`http://localhost:3000/api/customer/coupons/verify`, { code: couponCode })
+    axios.post(`http://localhost:3000/api/customer/coupons/verify`, { code: couponCode }, axiosConfig)
       .then(response => {
-        console.log(response.data); // Agregar esto para depurar la respuesta
+        console.log(response.data); 
         setCouponDetails(response.data);
         setErrorMessage('');
+        
       })
       .catch(error => {
         setErrorMessage(error.response?.data?.error || 'Error verifying coupon.');
@@ -36,21 +40,31 @@ const CustomerDashboard = ({ onLogout, authToken }) => {
   
   
   const handleRedeemCoupon = () => {
+    const authToken = localStorage.getItem('authToken');
+  
     if (!couponDetails || typeof couponDetails.id === 'undefined') {
-      alert('Invalid coupon details');
+      alert('Por favor, verifica un cupón antes de intentar canjearlo.');
       return;
     }
-
-    axios.post(`http://localhost:3000/api/customer/coupons/${couponDetails.id}/redeem`)
-      .then(response => {
-        alert(response.data.message || 'Coupon redeemed successfully.');
-        setCouponCode('');
-        setCouponDetails(null);
-      })
-      .catch(error => {
-        alert(error.response?.data?.error || 'Error redeeming coupon.');
-      });
+  
+    axios.post(`http://localhost:3000/api/customer/coupons/${couponDetails.id}/redeem`, {}, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    })
+    .then(response => {
+      alert(response.data.message || 'Cupón canjeado exitosamente.');
+      // Restablecer el estado relacionado con el cupón aquí si es necesario
+    })
+    .catch(error => {
+      if (error.response && error.response.status === 403) {
+        alert('Este cupón ya ha sido canjeado.');
+      } else {
+        console.error('Error:', error.response || error);
+        // Manejar otros tipos de errores aquí
+      }
+    });
   };
+  
+  
   
 
   return (

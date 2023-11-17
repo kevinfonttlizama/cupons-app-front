@@ -4,37 +4,42 @@ import Login from './login';
 import AdminDashboard from './AdminDashboard';
 import CustomerDashboard from './CustomerDashboard';
 
+
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState('');
 
+
+  
+
   useEffect(() => {
-    // Assuming the user's role and token are stored in localStorage or somewhere else
     const role = localStorage.getItem('userRole');
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (token && role) {
       setIsAuthenticated(true);
       setUserRole(role);
     }
   }, []);
 
-  const handleLoginSuccess = (userData) => {
+  const handleLoginSuccess = (token, role) => {
     setIsAuthenticated(true);
-    setUserRole(userData.role);
-    localStorage.setItem('token', userData.token); // Asegúrate de que el backend envía el token
-    localStorage.setItem('userRole', userData.role);
+    setUserRole(role);
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('userRole', role);
   };
+  
+
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserRole('');
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
   };
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={!isAuthenticated ? <Login onLoginSuccess={handleLoginSuccess} /> : (userRole === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/customer" replace />)} />
+        <Route path="/" element={!isAuthenticated ? <Login onLoginSuccess={handleLoginSuccess} /> : userRole === 'admin' ? <AdminDashboard onLogout={handleLogout} /> : <CustomerDashboard onLogout={handleLogout} />} />
         <Route path="/admin" element={isAuthenticated && userRole === 'admin' ? <AdminDashboard onLogout={handleLogout} /> : <Navigate to="/" replace />} />
         <Route path="/customer" element={isAuthenticated && userRole === 'customer' ? <CustomerDashboard onLogout={handleLogout} /> : <Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? `/${userRole}` : '/'} replace />} />

@@ -1,17 +1,11 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3000/coupons/';
-
-class CouponService {
-  static createCoupon(couponData, token) {
-    return axios.post(API_URL, couponData, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+axios.post('http://localhost:3000/api/customer/coupons/6/redeem', {}, {
+  headers: {
+    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
   }
-
- 
-}
-
-export default CouponService;
+})
+.then(response => {
+  // handle success
+})
+.catch(error => {
+  // handle error
+});

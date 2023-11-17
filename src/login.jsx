@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Container, Form, Button, Row, Col, Card, Modal } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+
+
 const Login = ({ onLoginSuccess }) => {
   const [credentials, setCredentials] = useState({
     email: '',
@@ -28,22 +30,21 @@ const Login = ({ onLoginSuccess }) => {
       const response = await axios.post('http://localhost:3000/users/sign_in', {
         user: credentials
       });
-  
-      if (response.data && response.data.role) {
-        onLoginSuccess(response.data); 
-        console.log(response.data)
+      const { token, role } = response.data;
+      if (token) {
+        onLoginSuccess(token, role);
       } else {
-  
-        console.error('Login failed: Role or token not provided in response');
+        console.error('Login failed: Token not provided in response');
       }
     } catch (error) {
       console.error('Login failed:', error.response ? error.response.data : error.message);
     }
   };
   
-
-
-
+  
+  
+  
+  
 
   const handleRegisterChange = (e) => {
     const { name, value } = e.target;
