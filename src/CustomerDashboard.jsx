@@ -52,14 +52,14 @@ const CustomerDashboard = ({ onLogout }) => {
     })
     .then(response => {
       alert(response.data.message || 'Cupón canjeado exitosamente.');
-      // Restablecer el estado relacionado con el cupón aquí si es necesario
+    
     })
     .catch(error => {
       if (error.response && error.response.status === 403) {
         alert('Este cupón ya ha sido canjeado.');
       } else {
         console.error('Error:', error.response || error);
-        // Manejar otros tipos de errores aquí
+  
       }
     });
   };

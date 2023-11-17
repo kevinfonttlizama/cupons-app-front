@@ -12,15 +12,15 @@ const AdminDashboard = ({onLogout}) => {
   const [editingCoupon, setEditingCoupon] = useState(null);
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken'); // Elimina el token de autenticación
+    localStorage.removeItem('authToken'); // deletes authtoken
     onLogout()
-    navigate('/login'); // Redirige al usuario a la página de inicio de sesión
+    navigate('/login'); // Rediricts to login
   };
 
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => {
     setShowModal(false);
-    setEditingCoupon(null); // Resetea el cupón en edición
+    setEditingCoupon(null); // Resetart edit coupon
   };
 
   const refreshCoupons = () => {

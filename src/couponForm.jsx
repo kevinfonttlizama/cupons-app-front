@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Form, Button, Col, Row, InputGroup, FormControl } from 'react-bootstrap';
 
 const CouponForm = ({ coupon = {}, refreshCoupons }) => {
-  // Estado inicial para un nuevo cupón o para editar uno existente
+
   const [formData, setFormData] = useState({
     code: '',
     discount_type: '',
@@ -14,7 +14,7 @@ const CouponForm = ({ coupon = {}, refreshCoupons }) => {
     ...coupon
   });
 
-  // Actualiza el estado del formulario si el cupón a editar cambia
+
   useEffect(() => {
     setFormData({ ...coupon });
   }, [coupon]);
