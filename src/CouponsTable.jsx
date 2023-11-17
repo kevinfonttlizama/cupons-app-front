@@ -22,11 +22,11 @@ const CouponsTable = ({ coupons, refreshCoupons, onEditCoupon, setShowModal, set
     <Table striped bordered hover>
       <thead>
         <tr>
-          <th>Código</th>
-          <th>Tipo de Descuento</th>
-          <th>Valor</th>
-          <th>Activo</th>
-          <th>Acciones</th>
+          <th>Code</th>
+          <th>Discount type</th>
+          <th>value</th>
+          <th>Active</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -42,7 +42,7 @@ const CouponsTable = ({ coupons, refreshCoupons, onEditCoupon, setShowModal, set
               </Button>
               {' '}
               <Button variant="secondary" onClick={() => handleEditCoupon(coupon)} disabled={coupon.active}>
-                Editar
+                Edit
               </Button>
             </td>
           </tr>
