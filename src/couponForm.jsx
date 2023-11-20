@@ -11,8 +11,10 @@ const CouponForm = ({ coupon = {}, refreshCoupons }) => {
     max_amount: 0,
     min_purchase_value: 0,
     active: false,
+    max_count: 0, 
     ...coupon
   });
+  
 
 
   useEffect(() => {
@@ -36,7 +38,7 @@ const CouponForm = ({ coupon = {}, refreshCoupons }) => {
     axios[method](url, formData)
       .then(() => {
         refreshCoupons();
-        // Resto de la lógica...
+     
       })
       .catch(error => console.error('Error saving coupon: ', error));
   };
@@ -103,6 +105,18 @@ const CouponForm = ({ coupon = {}, refreshCoupons }) => {
             onChange={handleChange}
           />
         </Form.Group>
+        <Form.Group as={Col} controlId="formGridMaxCount">
+    <Form.Label>Max Usage Count</Form.Label>
+    <Form.Control
+      type="number"
+      name="max_count"
+      value={formData.max_count}
+      onChange={handleChange}
+      required
+    />
+  </Form.Group>
+
+
       </Row>
 
       <Form.Group className="mb-3" controlId="formGridActive">

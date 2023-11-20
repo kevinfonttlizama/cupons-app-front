@@ -51,7 +51,7 @@ const AdminDashboard = ({onLogout}) => {
 
       <Container>
         <h1>Welcome, Admin!</h1>
-        <Button variant="primary" onClick={handleOpenModal}>Crear Nuevo Cupón</Button>
+        <Button variant="primary" onClick={handleOpenModal}>Create new coupon</Button>
 
         <Modal show={showModal} onHide={handleCloseModal}>
           <Modal.Header closeButton>
