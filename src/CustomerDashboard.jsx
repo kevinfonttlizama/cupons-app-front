@@ -10,37 +10,53 @@ const CustomerDashboard = ({ onLogout }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [purchaseTotal, setPurchaseTotal] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [originalTotal, setOriginalTotal] = useState(0);
+  const [isCouponApplied, setIsCouponApplied] = useState(false);
 
   const authToken = localStorage.getItem('authToken');
   const axiosConfig = { headers: { 'Authorization': `Bearer ${authToken}` } };
 
   useEffect(() => {
     axios.get('http://localhost:3000/api/items', axiosConfig)
-      .then(response => setProducts(response.data))
-      .catch(error => console.error('Error al cargar los productos:', error));
+      .then(response => {
+        console.log("Products loaded", response.data);
+        setProducts(response.data);
+      })
+      .catch(error => console.error('Error loading products:', error));
   }, []);
+  
 
   useEffect(() => {
     const total = selectedProducts.reduce((sum, productId) => {
       const product = products.find(p => p.id === productId);
       return sum + (product ? product.price : 0);
     }, 0);
-    setPurchaseTotal(total);
-  }, [selectedProducts, products]);
+    setOriginalTotal(total);
+    if (isCouponApplied && couponDetails) {
+      applyDiscount(couponDetails);
+    } else {
+      setPurchaseTotal(total); 
+    }
+  }, [selectedProducts, products, isCouponApplied, couponDetails]);
+
+  
 
   const handleAddProduct = (productId) => {
-    setSelectedProducts([...selectedProducts, productId]);
+    setSelectedProducts(currentSelectedProducts => [...currentSelectedProducts, productId]);
   };
 
   const handleVerifyCoupon = () => {
+    setPurchaseTotal(originalTotal);
     axios.post('http://localhost:3000/api/customer/coupons/verify', { code: couponCode, purchase_total: purchaseTotal}, axiosConfig)
       .then(response => {
         const coupon = response.data;
-        setCouponDetails(coupon);
+        setCouponDetails({...coupon, id: coupon.id});
+        setIsCouponApplied(true);
         setErrorMessage('');
   
         if (coupon.count_used >= (coupon.max_count || Number.MAX_VALUE)) {
-          setErrorMessage('Este cupón ha alcanzado su límite máximo de usos.');
+          setErrorMessage('This coupon has reached its maximum use limit.');
+          setPurchaseTotal(originalTotal);
           setDiscountAmount(0); 
           return;
         }
@@ -48,29 +64,28 @@ const CustomerDashboard = ({ onLogout }) => {
         if (purchaseTotal >= (coupon.min_purchase_value || 0)) {
           applyDiscount(coupon);
         } else {
-          setErrorMessage('El valor de la compra no alcanza el mínimo requerido para el cupón.');
-          setDiscountAmount(0); // Resetear el descuento si no se cumple el mínimo
+          setErrorMessage('The purchase value does not meet the minimum required for the coupon.');
+          setDiscountAmount(0); 
         }
       })
       .catch(error => {
         setErrorMessage(error.response?.data?.error || 'Error verifying coupon.');
         setCouponDetails(null);
-        setDiscountAmount(0); // Resetear el descuento en caso de error
+        setDiscountAmount(0);
       });
   };
   
   
   
   const isValidCoupon = (coupon) => {
-    // Validar si el cupón se ha utilizado más veces de las permitidas
+
     if (coupon.count_used >= (coupon.max_count || Number.MAX_VALUE)) {
-      alert('El cupón ha alcanzado su límite de uso.');
+      alert('This coupon has reached its maximum use limit.');
       return false;
     }
   
-    // Validar el valor mínimo de compra para el cupón
     if (purchaseTotal < (coupon.min_purchase_value || 0)) {
-      alert('El valor de la compra no alcanza el mínimo requerido para el cupón.');
+      alert('The purchase value does not meet the minimum required for the coupon.');
       return false;
     }
   
@@ -91,9 +106,9 @@ const CustomerDashboard = ({ onLogout }) => {
     discountValue = Math.min(discountValue, purchaseTotal); 
   
     setDiscountAmount(discountValue);
+    setPurchaseTotal(originalTotal - discountValue);
   
-    const finalTotal = purchaseTotal - discountValue;
-    setPurchaseTotal(finalTotal);
+
   };
   
   
@@ -101,12 +116,13 @@ const CustomerDashboard = ({ onLogout }) => {
   
   const handlePurchase = () => {
     const purchaseData = {
-        purchase: {
-            items: selectedProducts.map(product => product.id), // Asegúrate de que esto envía los IDs de los productos
-            coupon_code: couponDetails ? couponCode : undefined
-        }
+      purchase: {
+        items: selectedProducts.map(product => product.id),
+        coupon_code: couponDetails ? couponCode : undefined,
+        coupon_id: couponDetails ? couponDetails.id : undefined
+      }
     };
-  
+    console.log("Sending purchase data:", purchaseData);
     axios.post('http://localhost:3000/api/purchases', purchaseData, axiosConfig)
       .then(response => {
         alert('Compra realizada exitosamente');
@@ -118,8 +134,8 @@ const CustomerDashboard = ({ onLogout }) => {
         setDiscountAmount(0);
       })
       .catch(error => {
-        console.error('Error al realizar la compra:', error);
-        alert('Error al realizar la compra. Por favor, inténtelo de nuevo.');
+        console.error('Error when making purchase:', error);
+        alert('Error when making the purchase. Please try again.');
       });
   };
 
@@ -137,8 +153,8 @@ const CustomerDashboard = ({ onLogout }) => {
             <Card>
               <Card.Body>
                 <Card.Title>{product.name}</Card.Title>
-                <Card.Text>Precio: ${product.price}</Card.Text>
-                <Button onClick={() => handleAddProduct(product.id)}>Agregar</Button>
+                <Card.Text>price: ${product.price}</Card.Text>
+                <Button onClick={() => handleAddProduct(product.id)}>Add</Button>
               </Card.Body>
             </Card>
           </Col>
@@ -146,32 +162,31 @@ const CustomerDashboard = ({ onLogout }) => {
       </Row>
 
       <div>
-        <h3>Resumen de Compra</h3>
+        <h3>Resume</h3>
         <p>Total: ${purchaseTotal}</p>
-        <p>Descuento: ${discountAmount}</p>
-        <Button onClick={handlePurchase}>Comprar</Button>
+        <p>Discount: ${discountAmount}</p>
+        <Button onClick={handlePurchase}>Buy</Button>
       </div>
 
       <Form>
         <Form.Group>
-          <Form.Label>Código de Cupón</Form.Label>
+          <Form.Label>Coupon Code : </Form.Label>
           <Form.Control 
             type="text" 
             value={couponCode} 
             onChange={e => setCouponCode(e.target.value)} 
           />
         </Form.Group>
-        <Button onClick={handleVerifyCoupon}>Verificar Cupón</Button>
+        <Button onClick={handleVerifyCoupon}>Verify</Button>
       </Form>
 
       {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
       {couponDetails && (
   <Alert variant="success">
-    <p>Cupón: {couponDetails.description || 'No especificado'}</p>
-    <p>Tipo de Descuento: {couponDetails.discount_type}</p>
-    <p>Valor de Descuento: {couponDetails.discount_value}</p>
-    <p>Monto Máximo de Descuento: {couponDetails.max_amount || 'No especificado'}</p>
-    <p>Valor Mínimo de Compra: {couponDetails.min_purchase_value || 'No especificado'}</p>
+    <p>Discount type: {couponDetails.discount_type}</p>
+    <p>Discount Value: {couponDetails.discount_value}</p>
+    <p>Max Amount: {couponDetails.max_amount || 'No especificado'}</p>
+    <p>Min purchase Value: {couponDetails.min_purchase_value || 'No especificado'}</p>
   </Alert>
 )}
     </Container>
