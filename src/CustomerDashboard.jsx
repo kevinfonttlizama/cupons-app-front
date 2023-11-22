@@ -100,11 +100,10 @@ const CustomerDashboard = ({ onLogout }) => {
       discountValue = Math.min(coupon.discount_value, coupon.max_amount || coupon.discount_value);
     } else if (coupon.discount_type === 'percentage') {
       const percentageDiscount = purchaseTotal * (coupon.discount_value / 100);
-      discountValue = Math.min(percentageDiscount, coupon.max_amount || percentageDiscount);
+      discountValue = originalTotal * (coupon.discount_value / 100);
     }
   
-    discountValue = Math.min(discountValue, purchaseTotal); 
-  
+    discountValue = Math.min(discountValue, coupon.max_amount);
     setDiscountAmount(discountValue);
     setPurchaseTotal(originalTotal - discountValue);
   
@@ -125,7 +124,7 @@ const CustomerDashboard = ({ onLogout }) => {
     console.log("Sending purchase data:", purchaseData);
     axios.post('http://localhost:3000/api/purchases', purchaseData, axiosConfig)
       .then(response => {
-        alert('Compra realizada exitosamente');
+        alert('Purchase Succesful');
 
         setSelectedProducts([]);
         setCouponCode('');
