@@ -29,7 +29,7 @@ const CouponForm = ({ coupon = {}, refreshCoupons }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
   
-    // Verifica si el cupón es nuevo o uno existente
+
     const isEditing = coupon && coupon.id;
   
     const method = isEditing ? 'put' : 'post';
